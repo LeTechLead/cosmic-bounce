@@ -13,15 +13,15 @@ cosmic-bounce/
   index.html   # The entire game — HTML + CSS + JS, zero build step
 ```
 
-That's it. One file, ~470 lines, no build pipeline.
+That's it. One file, ~495 lines, no build pipeline.
 
 ## Game design
 
 - **Player**: Glowing orb, resets 3 mid-air jumps on every platform landing.
-- **Controls**: `A` / `D` steer horizontally; `Space` starts the game or uses a mid-air jump.
-- **Scoring**: Altitude-based — score equals highest altitude (in metres, 5 px = 1 m). Gems give +15 flat. Consecutive bounces on different platforms build a combo bonus (up to +10 per bounce, `xN COMBO`).
-- **Difficulty curve**: `diff()` returns a value from 1–6 based on score. Higher difficulty = narrower platforms, slightly faster bounce.
-- **Game over**: Player falls 100 px below the bottom of the camera view.
+- **Controls**: `A` / `D` or `ArrowLeft` / `ArrowRight` steer horizontally; `Space` starts the game or uses a mid-air jump.
+- **Scoring**: Purely altitude — score equals highest altitude (in metres, 5 px = 1 m), displayed as `XXm`. Gems and combos produce floating visual feedback (`+15`, `xN COMBO`) but **do not add points** to the score. The combo counter (🔥 in the top-right) increments on new platforms and gems, resets when re-landing on a previously visited platform.
+- **Difficulty curve**: `diff()` returns 1–6 based on score. Higher difficulty = narrower platforms, slightly faster bounce.
+- **Game over**: Player falls 100 px below the bottom of the camera view. High score persisted in `localStorage`.
 
 ## Code architecture
 
@@ -30,12 +30,12 @@ All code lives inside a single `<script>` block, organized into clearly marked s
 1. **Canvas** — setup and resize handler.
 2. **Audio** — Web Audio API oscillator beeps (pentatonic-scale bounces, random-chime gem collects, descending sawtooth game-over).
 3. **Particles** — emit / update / draw system with fade-out and drag.
-4. **Background stars** — static star field with parallax via camera offset.
-5. **Floating text** — temporary score pop-ups (+15, combo text).
-6. **Game State** — `state` enum (`start` / `playing` / `over`), score, combo timer, high score (localStorage).
+4. **Background stars** — 250 stars with parallax. Three behaviors: normal twinkle, pulsar (bright rhythmic pulse), flasher (sharp sudden spike then fade).
+5. **Floating text** — temporary pop-ups for gem collects (`+15`) and combo milestones (`xN COMBO`).
+6. **Game State** — `state` enum (`start` / `playing` / `over`), score, combo, high score (localStorage).
 7. **Difficulty & generation** — `diff()`, `addPlatform()`, `addGem()`, `initGame()`.
-8. **Input** — `keydown` / `keyup` handlers for Space, A, D.
-9. **Update** — physics loop: gravity, movement, platform collision, gem pickup, combo decay, procedural generation, cleanup, game-over check.
+8. **Input** — `keydown` / `keyup` handlers for Space, A/D, ArrowLeft/ArrowRight.
+9. **Update** — physics loop: gravity, movement, platform collision, gem pickup, combo logic (resets on re-landing same platform), procedural generation, cleanup, game-over check.
 10. **Draw** — background gradient + nebulae + stars, platforms with glow, gems with pulsing animation, player with radial gradient + speed lines, particles, floating text, shake effect.
 11. **Loop** — `requestAnimationFrame` loop calling `update()` then `draw()`.
 
