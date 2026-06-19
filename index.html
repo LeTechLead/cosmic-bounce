@@ -146,7 +146,7 @@ function addPlatform(y) {
   const w = Math.max(70, 150 - d * 10);
   const x = Math.random() * (W - w - 100) + 50;
   const c = platColors[Math.floor(Math.random() * platColors.length)];
-  platforms.push({ x, y, w, h: 14, color: c, bs: 12 + Math.random() * 3, pressed: false, anim: 0 });
+  platforms.push({ x, y, w, h: 14, color: c, bs: 12 + Math.random() * 3, pressed: false, anim: 0, visited: false });
 }
 
 function addGem(x, y) {
@@ -159,7 +159,7 @@ function initGame() {
   platforms = []; gems = []; particles = []; floats = []; time = 0;
 
   // Ground
-  platforms.push({ x: W / 2 - 130, y: H - 60, w: 260, h: 14, color: platColors[0], bs: 14, pressed: false, anim: 0 });
+  platforms.push({ x: W / 2 - 130, y: H - 60, w: 260, h: 14, color: platColors[0], bs: 14, pressed: false, anim: 0, visited: false });
 
   for (let i = 1; i < 20; i++) {
     addPlatform(H - 60 - i * 95 - Math.random() * 30);
@@ -191,14 +191,14 @@ window.addEventListener('keydown', e => {
   }
 });
 window.addEventListener('keydown', e => { if (e.code === 'Space') e.preventDefault(); });
-const keys = { a: false, d: false };
+const keys = { left: false, right: false };
 window.addEventListener('keydown', e => {
-  if (e.code === 'KeyA') { keys.a = true; }
-  if (e.code === 'KeyD') { keys.d = true; }
+  if (e.code === 'KeyA' || e.code === 'ArrowLeft')  { keys.left = true; }
+  if (e.code === 'KeyD' || e.code === 'ArrowRight') { keys.right = true; }
 });
 window.addEventListener('keyup', e => {
-  if (e.code === 'KeyA') { keys.a = false; }
-  if (e.code === 'KeyD') { keys.d = false; }
+  if (e.code === 'KeyA' || e.code === 'ArrowLeft')  { keys.left = false; }
+  if (e.code === 'KeyD' || e.code === 'ArrowRight') { keys.right = false; }
 });
 
 // ─── Update ───
@@ -215,8 +215,8 @@ function update() {
 
   // Horizontal movement (A/D)
   const spd = 6;
-  if (keys.a) player.vx = -spd;
-  else if (keys.d) player.vx = spd;
+  if (keys.left) player.vx = -spd;
+  else if (keys.right) player.vx = spd;
   else player.vx = 0;
   player.x += player.vx;
   player.x = Math.max(player.r, Math.min(W - player.r, player.x)); // clamp to screen
@@ -244,10 +244,14 @@ function update() {
           emit(player.x, player.y + player.r, p.color[0], 18, 5, 28, 3);
           emit(player.x, player.y + player.r, '#fff', 6, 3, 18, 2);
 
-          combo++; comboTimer = 100;
-          const bonus = combo > 1 ? Math.min(combo, 10) : 0;
-          score += bonus;
-          if (combo > 1) addFloat(player.x, player.y - 35, `x${combo} COMBO +${bonus}`, '#ffe066');
+          // Bounce on new platform for the first time: combo + bonus
+          if (!p.visited) {
+            p.visited = true;
+            combo++; comboTimer = 100;
+            const bonus = combo > 1 ? Math.min(combo, 10) : 0;
+            score += bonus;
+            if (combo > 1) addFloat(player.x, player.y - 35, `x${combo} COMBO +${bonus}`, '#ffe066');
+          }
           shake = 5;
           break;
         }
@@ -262,9 +266,13 @@ function update() {
     const dx = player.x - g.x, dy = player.y - g.y;
     if (dx * dx + dy * dy < (player.r + g.r + 6) ** 2) {
       g.alive = false; score += 15;
+      combo++; comboTimer = 100;
+      const bonus = combo > 1 ? Math.min(combo, 10) : 0;
+      score += bonus;
       emit(g.x, g.y, g.color, 22, 6, 32, 3);
       playCollect();
       addFloat(g.x, g.y - 25, '+15', g.color);
+      if (combo > 1) addFloat(g.x, g.y - 50, `x${combo} COMBO +${bonus}`, '#ffe066');
     }
   }
 
