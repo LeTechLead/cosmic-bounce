@@ -158,7 +158,7 @@ function addGem(x, y) {
 
 function initGame() {
   player.x = W / 2; player.y = H - 120; player.vy = -10; player.vx = 0; player.hue = 0; player.jumpsLeft = 3;
-  camera.y = 0; score = 0; combo = 0;
+  camera.y = 0; score = 0; combo = 0; maxHeight = 0;
   platforms = []; gems = []; particles = []; floats = []; time = 0;
 
   // Ground
