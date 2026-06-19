@@ -301,8 +301,8 @@ function update() {
   if (player.y > camera.y + H + 100) {
     state = 'over'; playOver();
     if (score > highScore) { highScore = score; localStorage.cbc_high = score; }
-    document.getElementById('finalScore').textContent = score;
-    document.getElementById('highScore').textContent = `Best: ${highScore}`;
+    document.getElementById('finalScore').textContent = `${score}m`;
+    document.getElementById('highScore').textContent = `Best: ${highScore}m`;
     document.getElementById('overScreen').classList.remove('hidden');
   }
 
@@ -321,7 +321,7 @@ function update() {
   updateParticles();
 
   // UI
-  document.getElementById('score').textContent = score;
+  document.getElementById('score').textContent = `${score}m`;
   const ce = document.getElementById('combo');
   ce.textContent = combo > 1 ? `🔥 x${combo}` : '';
   ce.classList.toggle('show', combo > 1);
