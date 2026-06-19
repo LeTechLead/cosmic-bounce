@@ -125,7 +125,7 @@ function addFloat(x, y, text, color) { floats.push({ x, y, text, color, life: 50
 
 // ─── Game State ───
 let state = 'start';
-let score = 0, combo = 0, comboTimer = 0, time = 0, highScore = +(localStorage.cbc_high || 0);
+let score = 0, combo = 0, time = 0, highScore = +(localStorage.cbc_high || 0);
 
 const player = { x: 0, y: 0, vx: 0, vy: 0, r: 20, hue: 0, jumpsLeft: 3 };
 let camera = { y: 0 };
@@ -155,7 +155,7 @@ function addGem(x, y) {
 
 function initGame() {
   player.x = W / 2; player.y = H - 120; player.vy = -10; player.vx = 0; player.hue = 0; player.jumpsLeft = 3;
-  camera.y = 0; score = 0; combo = 0; comboTimer = 0;
+  camera.y = 0; score = 0; combo = 0;
   platforms = []; gems = []; particles = []; floats = []; time = 0;
 
   // Ground
@@ -244,10 +244,12 @@ function update() {
           emit(player.x, player.y + player.r, p.color[0], 18, 5, 28, 3);
           emit(player.x, player.y + player.r, '#fff', 6, 3, 18, 2);
 
-          // Bounce on new platform for the first time: combo + bonus
-          if (!p.visited) {
+          // Bounce: first time on this platform → combo++; re-landing → combo resets
+          if (p.visited) {
+            combo = 0;
+          } else {
             p.visited = true;
-            combo++; comboTimer = 100;
+            combo++;
             const bonus = combo > 1 ? Math.min(combo, 10) : 0;
             score += bonus;
             if (combo > 1) addFloat(player.x, player.y - 35, `x${combo} COMBO +${bonus}`, '#ffe066');
@@ -266,7 +268,7 @@ function update() {
     const dx = player.x - g.x, dy = player.y - g.y;
     if (dx * dx + dy * dy < (player.r + g.r + 6) ** 2) {
       g.alive = false; score += 15;
-      combo++; comboTimer = 100;
+      combo++;
       const bonus = combo > 1 ? Math.min(combo, 10) : 0;
       score += bonus;
       emit(g.x, g.y, g.color, 22, 6, 32, 3);
@@ -275,9 +277,6 @@ function update() {
       if (combo > 1) addFloat(g.x, g.y - 50, `x${combo} COMBO +${bonus}`, '#ffe066');
     }
   }
-
-  // Combo decay
-  if (comboTimer > 0) { comboTimer--; if (comboTimer <= 0) combo = 0; }
 
   // Platform animation
   for (const p of platforms) { if (p.anim > 0) p.anim--; if (p.anim <= 0) p.pressed = false; }
