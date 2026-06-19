@@ -116,7 +116,10 @@ function drawParticles() {
 const bgStars = Array.from({ length: 250 }, () => ({
   x: Math.random() * 2000, y: Math.random() * 6000,
   s: Math.random() * 2 + 0.5, sp: Math.random() * 0.4 + 0.05,
-  b: Math.random() * 0.6 + 0.3
+  b: Math.random() * 0.6 + 0.3,
+  flash: Math.random(), // 0..1; >0.95 = flasher, >0.85 = pulsar
+  flashPeriod: 2 + Math.random() * 8, // seconds between flashes
+  flashSpeed: 3 + Math.random() * 5   // how fast the flash spikes
 }));
 
 // ─── Floating text ───
@@ -349,7 +352,22 @@ function drawBg() {
   for (const s of bgStars) {
     const sx = ((s.x + Math.sin(time * 0.008 + s.x) * 5) % W + W) % W;
     const sy = ((s.y - camera.y * s.sp) % (H + 60) + H + 60) % (H + 60) - 30;
-    const tw = 0.5 + 0.5 * Math.sin(time * 0.06 + s.x * 0.1);
+
+    let tw;
+    if (s.flash > 0.95) {
+      // Flasher: sharp bright spike then fade
+      const phase = (time / 60) * Math.PI * 2 / s.flashPeriod;
+      const spike = Math.exp(-Math.pow((Math.sin(phase) + 1) / 2, 4));
+      tw = 0.2 + 0.8 * spike;
+    } else if (s.flash > 0.85) {
+      // Pulsar: bright, pronounced pulse
+      const phase = (time / 60) * Math.PI * 2 / s.flashPeriod;
+      tw = 0.3 + 0.7 * ((Math.sin(phase) + 1) / 2);
+    } else {
+      // Normal twinkle
+      tw = 0.5 + 0.5 * Math.sin(time * 0.06 + s.x * 0.1);
+    }
+
     ctx.globalAlpha = s.b * tw; ctx.fillStyle = '#fff';
     ctx.beginPath(); ctx.arc(sx, sy, s.s, 0, Math.PI * 2); ctx.fill();
   }
