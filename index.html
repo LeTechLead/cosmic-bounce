@@ -253,9 +253,7 @@ function update() {
           } else {
             p.visited = true;
             combo++;
-            const bonus = combo > 1 ? Math.min(combo, 10) : 0;
-            score += bonus;
-            if (combo > 1) addFloat(player.x, player.y - 35, `x${combo} COMBO +${bonus}`, '#ffe066');
+            if (combo > 1) addFloat(player.x, player.y - 35, `x${combo} COMBO`, '#ffe066');
           }
           shake = 5;
           break;
@@ -270,14 +268,12 @@ function update() {
     g.phase += 0.04;
     const dx = player.x - g.x, dy = player.y - g.y;
     if (dx * dx + dy * dy < (player.r + g.r + 6) ** 2) {
-      g.alive = false; score += 15;
+      g.alive = false;
       combo++;
-      const bonus = combo > 1 ? Math.min(combo, 10) : 0;
-      score += bonus;
       emit(g.x, g.y, g.color, 22, 6, 32, 3);
       playCollect();
       addFloat(g.x, g.y - 25, '+15', g.color);
-      if (combo > 1) addFloat(g.x, g.y - 50, `x${combo} COMBO +${bonus}`, '#ffe066');
+      if (combo > 1) addFloat(g.x, g.y - 50, `x${combo} COMBO`, '#ffe066');
     }
   }
 
